@@ -3,13 +3,22 @@ import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function AuthenticatedLayout({ header, children }) {
-    const user = usePage().props.auth.user;
+    const { auth, flash } = usePage().props;
+    const user = auth.user;
 
-    const [showingNavigationDropdown, setShowingNavigationDropdown] =
-        useState(false);
+    const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
+    const [showFlash, setShowFlash] = useState(true);
+
+    useEffect(() => {
+        if (flash?.success || flash?.error) {
+            setShowFlash(true);
+            const timer = setTimeout(() => setShowFlash(false), 4000);
+            return () => clearTimeout(timer);
+        }
+    }, [flash]);
 
     return (
         <div className="min-h-screen bg-gray-100">
@@ -29,6 +38,12 @@ export default function AuthenticatedLayout({ header, children }) {
                                     active={route().current('dashboard')}
                                 >
                                     Dashboard
+                                </NavLink>
+                                <NavLink
+                                    href={route('tickets.index')}
+                                    active={route().current('tickets.*')}
+                                >
+                                    Tickets
                                 </NavLink>
                             </div>
                         </div>
@@ -134,6 +149,12 @@ export default function AuthenticatedLayout({ header, children }) {
                         >
                             Dashboard
                         </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route('tickets.index')}
+                            active={route().current('tickets.*')}
+                        >
+                            Tickets
+                        </ResponsiveNavLink>
                     </div>
 
                     <div className="border-t border-gray-200 pb-1 pt-4">
@@ -161,6 +182,25 @@ export default function AuthenticatedLayout({ header, children }) {
                     </div>
                 </div>
             </nav>
+
+            {/* Flash Component Banner */}
+            {showFlash && (flash?.success || flash?.error) && (
+                <div
+                    className={`mx-auto mt-4 flex max-w-7xl items-center justify-between rounded-md p-4 px-4 sm:px-6 lg:px-8 ${
+                        flash.success
+                            ? 'border border-green-200 bg-green-50 text-green-800'
+                            : 'border border-red-200 bg-red-50 text-red-800'
+                    }`}
+                >
+                    <span>{flash.success || flash.error}</span>
+                    <button
+                        onClick={() => setShowFlash(false)}
+                        className="ml-4 font-bold"
+                    >
+                        ✕
+                    </button>
+                </div>
+            )}
 
             {header && (
                 <header className="bg-white shadow">
